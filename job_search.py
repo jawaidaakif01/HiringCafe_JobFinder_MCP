@@ -15,14 +15,14 @@ async def search_jobs(
     # Build the arguments accepted by HiringCafe's search_job tool.
     arguments = {
         "search": query,
-        "limit": limit
+        "limit": 25
     }
 
     if location.strip():
         arguments["location"] = location.strip()
 
     if employment_type != "Any":
-        arguments["employement_types"] = [employment_type]
+        arguments["employment_types"] = [employment_type]
 
 
     async with Client(HIRINGCAFE_URL) as client:
@@ -48,6 +48,26 @@ async def search_jobs(
     )
 
     # Convert Markdown into Python Dictionaries.
-    return parse_jobs(markdown)
+    jobs = parse_jobs(markdown)
+
+    for job in jobs:
+        print(
+            f"Title: {job.get('title')} |"
+            f"Employment: {job.get('employment_type')!r}"
+        )
+
+    # Validate employment type locally as well.
+    if employment_type != "Any":
+        requested_type = employment_type.strip().casefold()
+
+        jobs = [
+            job for job in jobs if requested_type in {
+                item.strip().casefold() for item in (job.get("employment_type") or "").split(",")
+            }
+        ]
+
+
+    return jobs[:limit]
+
 
     

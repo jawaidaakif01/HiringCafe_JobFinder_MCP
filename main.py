@@ -1,5 +1,6 @@
 import asyncio
 from job_search import search_jobs
+from job_details import get_job_details
 
 async def main():
     print("=" * 45)
@@ -12,7 +13,7 @@ async def main():
 
     location = input(
         "Enter location (default: India): "
-    ).strip() or "India"
+    ).strip()
 
     print("\nEmployment type: ")
     print("1. Internship")
@@ -52,8 +53,13 @@ async def main():
 
 
     try:
+        search_query = query
+
+        if employment_type == "Internship":
+            search_query = f"{query} intern internship"
+
         jobs = await search_jobs(
-            query=query,
+            query=search_query,
             location=location,
             employment_type=employment_type,
             limit=limit
@@ -67,12 +73,39 @@ async def main():
 
         for index, job in enumerate(jobs, start=1):
             print(f"{index}. {job['title']}")
-            print(f"    Company: {job['company'] or "Not provided"}")
-            print(f"    Location: {job['location'] or "Not provided"}")
-            print(f"    Workplace: {job['workplace'] or "Not provided"}")
-            print(f"    Salary: {job['compensation'] or "Not provided"}")
-            print(f"    Employment: {job['employment_type'] or "Not provided"}")
-            print(f"    Apply: {job['url'] or "Not provided"}")
+            print(f"    Company: {job['company'] or 'Not provided'}")
+            print(f"    Location: {job['location'] or 'Not provided'}")
+            print(f"    Workplace: {job['workplace'] or 'Not provided'}")
+            print(f"    Salary: {job['compensation'] or 'Not provided'}")
+            print(f"    Employment: {job['employment_type'] or 'Not provided'}")
+            print(f"    Apply: {job['url'] or 'Not provided'}")
+
+        selected = input(
+            "\nEnter a job number to view full details "
+            "(or press Enter to exit): "
+        ).strip()
+
+        if selected:
+            try:
+                index = int(selected) - 1
+
+                if not 0 <= index < len(jobs):
+                    print("Invalid job number.")
+                    return
+
+                job_id = jobs[index].get("job_id")
+
+                if not job_id:
+                    print("Job ID is missing for this listing.")
+                    return
+
+                print("\nFetching full job details...\n")
+
+                details = await get_job_details(job_id)
+                print(details)
+
+            except ValueError:
+                print("Please enter a valid numbe.")
 
     except Exception as error:
         print(f"\nSomething went wrong: {error}")
