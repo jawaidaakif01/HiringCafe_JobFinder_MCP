@@ -1,0 +1,1 @@
+An MCP project, built after a exhausting the Claude's token for finding job listings on hiring cafe portal using Connectors.
